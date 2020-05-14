@@ -35,15 +35,15 @@ function fromString(str) {
 const RUNNERS = [
   {
     name: "Jules",
-    times: ["00:46:00"],
+    times: ["00:46:06"],
   },
   {
     name: "Matt",
-    times: ["00:33:00"],
+    times: ["00:33:41"],
   },
   {
     name: "James",
-    times: ["00:51:00"],
+    times: ["00:49:48"],
   },
   {
     name: "Tom",
@@ -87,7 +87,6 @@ const SimpleTable = ({ columns, data }) => {
 };
 
 function App() {
-
   const phases = PHASES.map((dist, i) => {
     const label = DIST_LABELS[dist];
 
@@ -99,13 +98,14 @@ function App() {
     const runnersData = RUNNERS.map(({ name, times }) => ({
       name,
       time: times[i],
-      winner: fastestTime === fromString(times[i])
+      winner: fastestTime === fromString(times[i]),
     }));
 
     return (
       <div>
         <h4>
-          Run {i + 1} \\ {label} \\ Winner {runnersData.find(d => d.winner).name}
+          Run {i + 1} \\ {label} \\ Winner{" "}
+          {runnersData.find((d) => d.winner).name}
         </h4>
         <SimpleTable columns={["name", "time"]} data={runnersData} />
       </div>
@@ -122,25 +122,37 @@ function App() {
     return { name, target };
   });
 
-  const fastestTime = nextPhaseRaw.map(p => p.target).reduce((a, b) => Math.min(a, b), Infinity);
+  const fastestTime = nextPhaseRaw
+    .map((p) => p.target)
+    .reduce((a, b) => Math.min(a, b), Infinity);
   const nextPhase = nextPhaseRaw.map(({ name, target }) => {
     const handicap = toString(target - fastestTime);
-    return { name, handicap, target: toString(target) }
+    return { name, handicap, target: toString(target) };
   });
 
   return (
-    <div className="App" style={{ textAlign: 'center', maxWidth: '800px' }}>
+    <div className="App" style={{ textAlign: "center", maxWidth: "800px" }}>
       <h1>COVID CUP POWER RANKINGS</h1>
 
       <div className="next">
         <h3>CURRENT ROUND - {DIST_LABELS[NEXT_PHASE_DIST]} - Ends 15 June</h3>
-        <SimpleTable columns={["name", "target", "handicap"]} data={nextPhase} />
+        <SimpleTable
+          columns={["name", "target", "handicap"]}
+          data={nextPhase}
+        />
       </div>
 
       <div className="past">
         <h3>COMPLETED ROUNDS</h3>
         {phases}
       </div>
+
+      <footer>
+        Methodology and multipliers adapted from{" "}
+        <a href="https://www.selbystriders.org.uk/handicap-competitions/handicap-points-calculator/">
+          Selby Striders
+        </a>
+      </footer>
     </div>
   );
 }
