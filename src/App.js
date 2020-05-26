@@ -47,7 +47,7 @@ const RUNNERS = [
   },
   {
     name: "Tom",
-    times: ["00:55:00"],
+    times: ["00:49:48"],
   },
 ];
 const PHASES = [10];
