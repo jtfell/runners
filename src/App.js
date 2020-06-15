@@ -4,12 +4,14 @@ import "./App.css";
 const DIST_MULTIPLIERS = {
   5: 0.476319876,
   10: 1,
+  15: 1.65,
   half: 2.222729,
   full: 4.666666667,
 };
 const DIST_LABELS = {
   5: "5k",
   10: "10k",
+  15: "15k",
   half: "Half Marathon",
   full: "Marathon",
 };
@@ -35,33 +37,35 @@ function fromString(str) {
 const RUNNERS = [
   {
     name: "Jules",
-    times: ["00:46:06"],
+    times: ["00:46:06", "00:21:20"],
   },
   {
     name: "Matt",
-    times: ["00:33:41"],
+    times: ["00:33:41", "00:16:14"],
   },
   {
     name: "James",
-    times: ["00:49:48"],
+    times: ["00:49:48", "00:22:05"],
   },
   {
     name: "Tom",
-    times: ["00:49:48"],
+    times: ["00:44:06", "00:20:55"],
   },
 ];
-const PHASES = [10];
-const NEXT_PHASE_DIST = 5;
+const PHASES = [10, 5];
+const NEXT_PHASE_DIST = 15;
 
 const SimpleTable = ({ columns, data }) => {
   const dataColumns = columns;
   const dataRows = data;
 
+  const pc = 100 / columns.length;
+
   const tableHeaders = (
     <thead>
       <tr>
         {dataColumns.map(function (column) {
-          return <th>{column}</th>;
+          return <th width={`${pc}%`}>{column}</th>;
         })}
       </tr>
     </thead>
@@ -71,7 +75,7 @@ const SimpleTable = ({ columns, data }) => {
     return (
       <tr>
         {dataColumns.map(function (column) {
-          return <td>{row[column]}</td>;
+          return <td width={`${pc}%`}>{row[column]}</td>;
         })}
       </tr>
     );
@@ -90,24 +94,50 @@ function App() {
   const phases = PHASES.map((dist, i) => {
     const label = DIST_LABELS[dist];
 
-    const fastestTime = RUNNERS.map((t) => fromString(t.times[i])).reduce(
-      (a, b) => Math.min(a, b),
-      Infinity
-    );
+    const lastDistance = PHASES[i - 1];
+    const runnersData = RUNNERS.map(({ name, times }) => {
+      const lastTime = fromString(times[i - 1] || '00:00:00');
+      const target =
+        (lastTime / DIST_MULTIPLIERS[lastDistance]) *
+        DIST_MULTIPLIERS[PHASES[i]];
+      const diff = `${Math.round(fromString(times[i]) - target)}s`;
 
-    const runnersData = RUNNERS.map(({ name, times }) => ({
-      name,
-      time: times[i],
-      winner: fastestTime === fromString(times[i]),
-    }));
+      return {
+        name,
+        time: times[i],
+        target: lastDistance ? toString(target) : 'NA',
+        diff: lastDistance ? diff : 'NA',
+      };
+    });
+
+    const winner = runnersData.reduce(
+      (a, b) => {
+        if (!a) {
+          return b;
+        }
+        if (!b) {
+          return a;
+        }
+        if (!lastDistance) {
+          if (fromString(a.time) < fromString(b.time)) {
+            return a;
+          }
+          return b;
+        }
+        if (parseInt(a.diff) < parseInt(b.diff)) {
+          return a;
+        }
+        return b;
+      },
+      null
+    );
 
     return (
       <div>
         <h4>
-          Run {i + 1} \\ {label} \\ Winner{" "}
-          {runnersData.find((d) => d.winner).name}
+          {label} \\ Winner: {winner.name}
         </h4>
-        <SimpleTable columns={["name", "time"]} data={runnersData} />
+        <SimpleTable columns={["name", "time", "diff"]} data={runnersData} />
       </div>
     );
   });
@@ -135,7 +165,7 @@ function App() {
       <h1>COVID CUP POWER RANKINGS</h1>
 
       <div className="next">
-        <h3>CURRENT ROUND - {DIST_LABELS[NEXT_PHASE_DIST]} - Ends 15 June</h3>
+        <h3>CURRENT ROUND - {DIST_LABELS[NEXT_PHASE_DIST]} - Ends 15 July</h3>
         <SimpleTable
           columns={["name", "target", "handicap"]}
           data={nextPhase}
@@ -144,7 +174,7 @@ function App() {
 
       <div className="past">
         <h3>COMPLETED ROUNDS</h3>
-        {phases}
+        {phases.reverse()}
       </div>
 
       <footer>
