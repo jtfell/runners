@@ -1,8 +1,10 @@
 import React from "react";
+import { CrownIcon, StopwatchIcon, Pane, Table, Heading, Avatar, Badge } from 'evergreen-ui'
 import "./App.css";
 
 const DIST_MULTIPLIERS = {
   5: 0.476319876,
+  8: 0.75,
   10: 1,
   15: 1.65,
   half: 2.222729,
@@ -10,6 +12,7 @@ const DIST_MULTIPLIERS = {
 };
 const DIST_LABELS = {
   5: "5k",
+  8: "8k",
   10: "10k",
   15: "15k",
   half: "Half Marathon",
@@ -37,56 +40,57 @@ function fromString(str) {
 const RUNNERS = [
   {
     name: "Jules",
-    times: ["00:46:06", "00:21:20"],
-  },
-  {
-    name: "Matt",
-    times: ["00:33:41", "00:16:14"],
-  },
-  {
-    name: "James",
-    times: ["00:49:48", "00:22:05"],
+    initials: 'J F',
+    times: ["00:37:14"],
   },
   {
     name: "Tom",
-    times: ["00:44:06", "00:20:55"],
+    initials: 'T P',
+    times: ["00:34:44"],
+  },
+  {
+    name: "James",
+    initials: 'J G',
+    times: ["00:39:48"],
+  },
+  {
+    name: "Nathan",
+    initials: "N J",
+    times: ["00:44:06"],
   },
 ];
-const PHASES = [10, 5];
-const NEXT_PHASE_DIST = 15;
+const PHASES = [8];
+const NEXT_PHASE_DIST = 10;
+
+const toCapCase = (name) => name[0].toUpperCase() + name.substring(1);
 
 const SimpleTable = ({ columns, data }) => {
-  const dataColumns = columns;
-  const dataRows = data;
-
-  const pc = 100 / columns.length;
 
   const tableHeaders = (
-    <thead>
-      <tr>
-        {dataColumns.map(function (column) {
-          return <th width={`${pc}%`}>{column}</th>;
-        })}
-      </tr>
-    </thead>
+    <Table.Head>
+      {columns.map(function (column) {
+        return <Table.HeaderCell>{toCapCase(column)}</Table.HeaderCell>;
+      })}
+    </Table.Head>
   );
 
-  const tableBody = dataRows.map(function (row) {
+  const tableRows = data.map(function (row, j) {
     return (
-      <tr>
-        {dataColumns.map(function (column) {
-          return <td width={`${pc}%`}>{row[column]}</td>;
+      <Table.Row key={j}>
+        {columns.map(function (column, i) {
+          return <Table.Cell key={i}>{row[column]}</Table.Cell>;
         })}
-      </tr>
+      </Table.Row>
     );
   });
 
-  // Decorate with Bootstrap CSS
   return (
-    <table className="table table-bordered table-hover" width="100%">
+    <Table border>
       {tableHeaders}
-      {tableBody}
-    </table>
+      <Table.Body>
+        {tableRows}
+      </Table.Body>
+    </Table>
   );
 };
 
@@ -95,7 +99,7 @@ function App() {
     const label = DIST_LABELS[dist];
 
     const lastDistance = PHASES[i - 1];
-    const runnersData = RUNNERS.map(({ name, times }) => {
+    const runnersData = RUNNERS.map(({ name, times, initials }) => {
       const lastTime = fromString(times[i - 1] || '00:00:00');
       const target =
         (lastTime / DIST_MULTIPLIERS[lastDistance]) *
@@ -103,10 +107,11 @@ function App() {
       const diff = `${Math.round(fromString(times[i]) - target)}s`;
 
       return {
-        name,
+        name: <div><Avatar name={initials} size={25} marginRight={10} />{name}</div>,
+        initials,
         time: times[i],
-        target: lastDistance ? toString(target) : 'NA',
-        diff: lastDistance ? diff : 'NA',
+        target: lastDistance ? toString(target) : '-',
+        diff: lastDistance ? diff : '-',
       };
     });
 
@@ -132,13 +137,14 @@ function App() {
       null
     );
 
+    const winnerEntry = runnersData.find(r => r.name === winner.name);
+    winnerEntry.name = <>{winnerEntry.name} <CrownIcon marginLeft={5} size={20} /></>;
+
     return (
-      <div>
-        <h4>
-          {label} \\ Winner: {winner.name}
-        </h4>
+      <Pane background="blueTint" elevation={1} width={600} alignItems="center" padding={18}>
+        <Badge color="neutral" marginBottom={30}>{label}</Badge>
         <SimpleTable columns={["name", "time", "diff"]} data={runnersData} />
-      </div>
+      </Pane>
     );
   });
 
@@ -161,29 +167,25 @@ function App() {
   });
 
   return (
-    <div className="App" style={{ textAlign: "center", maxWidth: "800px" }}>
-      <h1>COVID CUP POWER RANKINGS</h1>
+    <Pane display="flex" padding={16} borderRadius={3} maxWidth={1024} margin="auto" alignItems="center" flexDirection="column">
+      <Heading size={900} marginTop="default">COVID Cup 2021</Heading>
 
-      <div className="next">
-        <h3>CURRENT ROUND - {DIST_LABELS[NEXT_PHASE_DIST]} - Ends 15 July</h3>
+      <Pane elevation={1} marginTop={30} background="tint2" width={600} alignItems="left" padding={18}>
+        <Badge color="neutral" marginRight={30}>{DIST_LABELS[NEXT_PHASE_DIST]}</Badge>
+        <Heading size={300} margin={10}>
+          <StopwatchIcon size={20} marginRight={5}/> March 1 - March 31
+        </Heading>
         <SimpleTable
           columns={["name", "target", "handicap"]}
           data={nextPhase}
         />
-      </div>
+      </Pane>
 
-      <div className="past">
-        <h3>COMPLETED ROUNDS</h3>
+      <Heading size={700} margin={30}>Completed</Heading>
+      <Pane alignItems="center">
         {phases.reverse()}
-      </div>
-
-      <footer>
-        Methodology and multipliers adapted from{" "}
-        <a href="https://www.selbystriders.org.uk/handicap-competitions/handicap-points-calculator/">
-          Selby Striders
-        </a>
-      </footer>
-    </div>
+      </Pane>
+    </Pane>
   );
 }
 
