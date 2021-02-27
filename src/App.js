@@ -4,7 +4,7 @@ import "./App.css";
 
 const DIST_MULTIPLIERS = {
   5: 0.476319876,
-  8: 0.75,
+  8: 0.78,
   10: 1,
   15: 1.65,
   half: 2.222729,
