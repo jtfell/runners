@@ -51,7 +51,7 @@ const RUNNERS = [
   {
     name: "James",
     initials: 'J G',
-    times: ["00:39:48"],
+    times: ["00:44:06"],
   },
   {
     name: "Nathan",
